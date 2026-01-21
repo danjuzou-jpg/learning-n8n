@@ -1,0 +1,349 @@
+{
+  "name": "03_BTC_Price_Alert",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "86d19bbc-9658-471f-ad95-bfe456078529",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "url": "https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        416,
+        0
+      ],
+      "id": "8400454b-7007-414b-bf66-e6d7c1bd84c4",
+      "name": "HTTP Request",
+      "retryOnFail": true,
+      "waitBetweenTries": 5000
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "46d9eca7-a7a9-4ea0-a755-39bd90daf149",
+              "leftValue": "={{ $json.bitcoin.usd }}",
+              "rightValue": 80000,
+              "operator": {
+                "type": "number",
+                "operation": "lt"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        624,
+        0
+      ],
+      "id": "f57a274f-4ccb-4a6b-b93a-f9f0feafe50d",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "sendTo": "22120884@siswa.um.edu.my",
+        "subject": "🚨 紧急！BTC 跌破 80000 了！",
+        "emailType": "text",
+        "message": "=当前价格是：{{ $('HTTP Request').item.json.bitcoin.usd }}快去抄底！",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        832,
+        -96
+      ],
+      "id": "18313083-30ea-4c95-ad0a-a424c15ce1ae",
+      "name": "Send a message",
+      "webhookId": "a21cd918-2585-4983-b89d-1bcfa5ec571e",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "eSWDt4BmKp8wyXYN",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1M17avuata44Q8BUfFEk8keCCNlyrjI2KpCWNZR3l1Kw",
+          "mode": "list",
+          "cachedResultName": "n8n_test",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1M17avuata44Q8BUfFEk8keCCNlyrjI2KpCWNZR3l1Kw/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1179077366,
+          "mode": "list",
+          "cachedResultName": "BTC_Price_Monitor",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1M17avuata44Q8BUfFEk8keCCNlyrjI2KpCWNZR3l1Kw/edit#gid=1179077366"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Time": "={{ $now }}",
+            "Price_USD": "={{ $json.bitcoin.usd }}",
+            "Status": "Normal"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Time",
+              "displayName": "Time",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Price_USD",
+              "displayName": "Price_USD",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Status",
+              "displayName": "Status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        832,
+        96
+      ],
+      "id": "75e54162-a93b-4a59-bd3b-17a428a3dc42",
+      "name": "Append row in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "rlq783ORPtLMOyuC",
+          "name": "Google Sheets account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "hours"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        208,
+        0
+      ],
+      "id": "e7620fec-0ae8-4067-bf9b-fdeb4bdc5ec6",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1M17avuata44Q8BUfFEk8keCCNlyrjI2KpCWNZR3l1Kw",
+          "mode": "list",
+          "cachedResultName": "n8n_test",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1M17avuata44Q8BUfFEk8keCCNlyrjI2KpCWNZR3l1Kw/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1179077366,
+          "mode": "list",
+          "cachedResultName": "BTC_Price_Monitor",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1M17avuata44Q8BUfFEk8keCCNlyrjI2KpCWNZR3l1Kw/edit#gid=1179077366"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Time": "={{ $now }}",
+            "Price_USD": "={{ $json.bitcoin.usd }}",
+            "Status": "🚨 暴跌警告"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Time",
+              "displayName": "Time",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Price_USD",
+              "displayName": "Price_USD",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Status",
+              "displayName": "Status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        832,
+        -224
+      ],
+      "id": "c91064a6-2f51-4763-b639-558bcb47bcc7",
+      "name": "Append row in sheet1",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "rlq783ORPtLMOyuC",
+          "name": "Google Sheets account 2"
+        }
+      }
+    }
+  ],
+  "pinData": {
+    "Schedule Trigger": [
+      {
+        "json": {
+          "timestamp": "2026-01-21T04:00:18.009+08:00",
+          "Readable date": "January 21st 2026, 4:00:18 am",
+          "Readable time": "4:00:18 am",
+          "Day of week": "Wednesday",
+          "Year": "2026",
+          "Month": "January",
+          "Day of month": "21",
+          "Hour": "04",
+          "Minute": "00",
+          "Second": "18",
+          "Timezone": "Asia/Kuala_Lumpur (UTC+08:00)"
+        },
+        "pairedItem": {
+          "item": 0
+        }
+      }
+    ]
+  },
+  "connections": {
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        []
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Append row in sheet1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Append row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Append row in sheet1": {
+      "main": [
+        []
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false
+  },
+  "versionId": "b9712aa6-352e-49a6-b72b-1d150cb096d1",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "7a45841d8dfca1875d656c981311a986e08a1e4a5c3aa5344afaf93284041b8d"
+  },
+  "id": "okEbgXBrfDhkT3sm_qpHP",
+  "tags": []
+}
