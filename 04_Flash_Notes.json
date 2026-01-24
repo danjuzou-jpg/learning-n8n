@@ -1,0 +1,220 @@
+{
+  "name": "04_Flash_Notes",
+  "nodes": [
+    {
+      "parameters": {
+        "updates": [
+          "message"
+        ],
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        0
+      ],
+      "id": "3ab48e11-a35a-498e-a92a-9b47aecdce91",
+      "name": "Telegram Trigger",
+      "webhookId": "9f54406b-255d-4ab5-8ed1-55071fa91c18",
+      "credentials": {
+        "telegramApi": {
+          "id": "UuskHUWTPrxbuUL5",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Role: 你是一个记账助手。\nTask: 从我的输入中提取“消费项目”和“金额”。\nInput: {{ $json.message.text }}\nOutput Format: 请只返回一个纯 JSON 格式，不要任何 Markdown 标记。格式如下：\n{\n  \"item\": \"商品名\",\n  \"amount\": 数字\n}\n如果没识别出金额，amount 填 0。",
+        "hasOutputParser": true,
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.9,
+      "position": [
+        160,
+        0
+      ],
+      "id": "094250ab-e565-44d6-a7eb-a730c66237b4",
+      "name": "Basic LLM Chain"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        160,
+        176
+      ],
+      "id": "31132fa9-8ebd-4fb9-8895-ec81ed53f7db",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "vvRezYzCcGGCaLGJ",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "schemaType": "manual",
+        "inputSchema": "={\n  \"type\": \"object\",\n  \"properties\": {\n    \"item\": {\n      \"type\": \"string\",\n      \"description\": \"消费项目的名称\"\n    },\n    \"amount\": {\n      \"type\": \"number\",\n      \"description\": \"消费金额数字\"\n    }\n  },\n  \"required\": [\"item\", \"amount\"]\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        304,
+        208
+      ],
+      "id": "7f5863a7-15da-4903-b4f7-8dd69f9479f3",
+      "name": "Structured Output Parser"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1M17avuata44Q8BUfFEk8keCCNlyrjI2KpCWNZR3l1Kw",
+          "mode": "list",
+          "cachedResultName": "n8n_test",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1M17avuata44Q8BUfFEk8keCCNlyrjI2KpCWNZR3l1Kw/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 431528712,
+          "mode": "list",
+          "cachedResultName": "Flash_Notes_Bot",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1M17avuata44Q8BUfFEk8keCCNlyrjI2KpCWNZR3l1Kw/edit#gid=431528712"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Time": "={{ $now }}",
+            "Item": "={{ $json.output.item }}",
+            "Amount": "={{ $json.output.amount }}",
+            "Original_Text": "={{ $('Telegram Trigger').item.json.message.text }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Time",
+              "displayName": "Time",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Item",
+              "displayName": "Item",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Amount",
+              "displayName": "Amount",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Original_Text",
+              "displayName": "Original_Text",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        512,
+        0
+      ],
+      "id": "9ce09a74-ddde-4998-ada9-f509b5c40a10",
+      "name": "Append row in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "rlq783ORPtLMOyuC",
+          "name": "Google Sheets account 2"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Telegram Trigger": {
+      "main": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Basic LLM Chain": {
+      "main": [
+        [
+          {
+            "node": "Append row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false
+  },
+  "versionId": "9a845015-263e-42b6-8499-b6e9d3fed90b",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "7a45841d8dfca1875d656c981311a986e08a1e4a5c3aa5344afaf93284041b8d"
+  },
+  "id": "-S00xoEjp7Gx9ohmSmskm",
+  "tags": []
+}
