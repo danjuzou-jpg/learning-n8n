@@ -2,17 +2,6 @@
   "name": "Web3_AI_News_Daily",
   "nodes": [
     {
-      "parameters": {},
-      "type": "n8n-nodes-base.manualTrigger",
-      "typeVersion": 1,
-      "position": [
-        0,
-        0
-      ],
-      "id": "10a2b231-97f4-441b-bb55-833b75e64d1b",
-      "name": "When clicking ‘Execute workflow’"
-    },
-    {
       "parameters": {
         "url": "https://www.coindesk.com/arc/outboundfeeds/rss/",
         "options": {}
@@ -27,7 +16,9 @@
       "name": "RSS Read"
     },
     {
-      "parameters": {},
+      "parameters": {
+        "maxItems": 10
+      },
       "type": "n8n-nodes-base.limit",
       "typeVersion": 1,
       "position": [
@@ -40,7 +31,7 @@
     {
       "parameters": {
         "promptType": "define",
-        "text": "=Role: 你是一个 Web3 行业分析师。\nTask: 请把下面这篇英文新闻总结成中文。\nRequirements: 100字以内，通俗易懂，提取2个关键词。\n\nInput Data:\n标题：{{ $json.title }}\n内容：{{ $json['content:encoded'] }}\n链接：{{ $json.link }}",
+        "text": "=Role: 你是一位资深的 Web3 行业分析师，同时也是一位对新手极其友好的导师。\n\nTask: 请阅读我提供的“Web3 新闻汇总”，为我制作一份“每日双语早报”。\n\nInput Data:\n{{ $json.news_package }}\n\nRequirements (必须严格遵守):\n\n1. 【核心趋势归纳】(Top Trends):\n   - 从 10 条新闻中归纳出今天最重要的 1-3 个市场趋势或热点。\n   - 每个趋势的标题格式：🇨🇳中文标题 (🇺🇸English Title)\n   - 在每个趋势下，用中文简要概括核心事实，并附上相关新闻的原始链接。\n\n2. 【小白术语百科】(Crypto Glossary for Beginners):\n   - 自动扫描上述新闻中出现的 1-3 个难懂的专业术语（例如：DeFi, Staking, Airdrop, Gas Fee, Bull Market 等）。\n   - 如果没有明显的生僻词，就选最核心的那个词。\n   - 格式：\n     * **术语 (English)**: 用最通俗的大白话解释它是什么（比如把“Gas Fee”解释为“区块链世界的过路费/手续费”）。\n\n3. 【英语学习角】(Key Vocabulary):\n   - 提取新闻中 3 个值得学习的地道英文短语或单词，并附带中文意思。\n\nOutput Example Format (输出格式参考):\n---------------------------------------------------\n📅 **Web3 每日双语早报**\n\n🔥 **趋势一：比特币再次突破历史新高 (Bitcoin Hits All-Time High)**\n市场普遍认为这是由于机构资金入场导致的...\n🔗 相关新闻：[Link 1], [Link 2]\n\n💡 **小白术语百科**\n* **ETF (Exchange Traded Fund)**: 交易所交易基金。你可以把它想象成一个“水果拼盘”，你不需要去买每一个苹果或香蕉（不用直接买比特币），只需要买这个拼盘，就能享受到水果的收益。\n\n🔤 **英语学习角**\n* **Bullish** - 看涨的，牛市的\n* **Volatility** - 波动性\n---------------------------------------------------\n【关键格式要求 (Format Requirements)】\n\n必须输出 HTML 代码，不要输出 Markdown。\n\n不要使用 ** 或 ## 符号。\n\n使用 <b>标签来加粗标题（例如：<b>🔥 趋势一：...</b>）。\n\n使用 <br> 标签来进行换行（段落之间至少用两个 <br><br> 以便留出空隙）。\n\n列表项请使用 <ul> 和 <li> 标签，或者简单的用 • 符号加上 <br>。\n\n链接请使用 <a href=\"链接地址\">点击阅读</a> 的格式。",
         "batching": {}
       },
       "type": "@n8n/n8n-nodes-langchain.chainLlm",
@@ -74,7 +65,7 @@
     {
       "parameters": {
         "sendTo": "22120884@siswa.um.edu.my",
-        "subject": "【Web3早报】今日AI摘要",
+        "subject": "【Web3 每日双语早报】",
         "message": "={{ $json.text }}",
         "options": {}
       },
@@ -112,15 +103,23 @@
       ],
       "id": "648e534f-c278-4985-afae-93b1bd68c7f7",
       "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "jsCode": "// 获取所有新闻 (Limit 传过来的 10 条)\nconst items = $input.all();\n\nlet combinedText = \"今日 Web3 新闻汇总：\\n\\n\";\n\n// 循环处理每一条，把它们拼在一起\nfor (const item of items) {\n  const title = item.json.title;\n  const link = item.json.link;\n  const snippet = item.json.contentSnippet || \"\";\n  \n  // 拼装格式：标题 + 摘要 + 链接\n  combinedText += `🔹 标题：${title}\\n`;\n  combinedText += `📄 摘要：${snippet}\\n`;\n  combinedText += `🔗 链接：${link}\\n`;\n  combinedText += `-------------------\\n\\n`;\n}\n\n// 输出打包好的唯一包裹\nreturn [{ json: { news_package: combinedText } }];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        672,
+        256
+      ],
+      "id": "cecb7c0a-4a4f-4f1e-8528-f14f80156f67",
+      "name": "Code in JavaScript"
     }
   ],
   "pinData": {},
   "connections": {
-    "When clicking ‘Execute workflow’": {
-      "main": [
-        []
-      ]
-    },
     "RSS Read": {
       "main": [
         [
@@ -147,7 +146,7 @@
       "main": [
         [
           {
-            "node": "Basic LLM Chain",
+            "node": "Code in JavaScript",
             "type": "main",
             "index": 0
           }
@@ -175,14 +174,25 @@
           }
         ]
       ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
-  "active": false,
+  "active": true,
   "settings": {
     "executionOrder": "v1",
     "availableInMCP": false
   },
-  "versionId": "50ca343d-11cb-47d5-bfdb-b0e05d3063b1",
+  "versionId": "18139fef-c53c-4788-b1dc-be4146d89c1b",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "7a45841d8dfca1875d656c981311a986e08a1e4a5c3aa5344afaf93284041b8d"
